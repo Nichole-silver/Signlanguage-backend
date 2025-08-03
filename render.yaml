@@ -4,5 +4,6 @@ services:
     env: python
     runtime: python-3.9
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn app:app"  # thay đổi nếu bạn dùng file main khác
+    startCommand: "gunicorn app:app"
+    region: oregon  # bạn có thể đổi thành singapore nếu gần Việt Nam hơn
 
