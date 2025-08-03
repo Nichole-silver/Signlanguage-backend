@@ -2,8 +2,7 @@ services:
   - type: web
     name: signlanguage-backend
     env: python
-    runtime: python-3.9
+    runtime: python-3.10
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn app:app"
-    region: oregon  # bạn có thể đổi thành singapore nếu gần Việt Nam hơn
-
+    region: singapore  # hoặc oregon, tuỳ vị trí bạn chọn
