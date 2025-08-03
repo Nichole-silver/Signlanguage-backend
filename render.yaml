@@ -5,4 +5,4 @@ services:
     runtime: python-3.10
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn app:app"
-    region: singapore  # hoặc oregon, tuỳ vị trí bạn chọn
+    region: oregon  # hoặc oregon, tuỳ vị trí bạn chọn
