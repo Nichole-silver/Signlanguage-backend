@@ -46,5 +46,7 @@ def detect_image():
     return jsonify({'result': result})
 
 if __name__ == '__main__':
-    print("API đang chạy tại http://127.0.0.1:5000")
-    app.run(debug=True)
+    print("API đang chạy tại http://0.0.0.0:5000")
+    app.run(host="0.0.0.0", port=5000, debug=True)
+
+
