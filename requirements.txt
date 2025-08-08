@@ -30,7 +30,7 @@ libclang==18.1.1
 Markdown==3.8
 MarkupSafe==3.0.2
 matplotlib==3.9.4
-mediapipe==0.10.9
+mediapipe
 numpy==1.23.5
 oauthlib==3.2.2
 opencv-contrib-python==4.11.0.86
