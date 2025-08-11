@@ -1,51 +1,42 @@
 # gesture_rules.py
-# Bộ quy tắc nhận dạng ký hiệu tay
+# Chứa các quy tắc nhận diện ký hiệu tay
 
-# Ký hiệu 1 tay (mặc định tay phải)
-# fingers = [thumb, index, middle, ring, pinky] (0: gập, 1: duỗi)
-one_hand_gestures = [
-    {
-        "name": "A",
-        "pattern": [0, 0, 0, 0, 0]
-    },
+# Quy tắc cho một tay (mặc định là tay phải, ảnh đã un-mirror)
+one_hand_rules = [
     {
         "name": "B",
-        "pattern": [0, 1, 1, 1, 1]
+        "fingers": [0, 1, 1, 1, 1],
+        "conditions": []
     },
     {
         "name": "L",
-        "pattern": [1, 1, 0, 0, 0]
+        "fingers": [1, 1, 0, 0, 0],
+        "conditions": []
     },
-    {
-        "name": "V",
-        "pattern": [0, 1, 1, 0, 0]
-    },
-    {
-        "name": "W",
-        "pattern": [0, 1, 1, 1, 0]
-    },
-    {
-        "name": "Nắm tay",
-        "pattern": [0, 0, 0, 0, 0]
-    },
-]
-
-# Các ký hiệu 1 tay nhưng cần điều kiện phụ (góc hoặc khoảng cách)
-special_one_hand_gestures = [
     {
         "name": "I Love You",
-        "pattern": [1, 1, 0, 0, 1],
-        "thumb_index_dist": 0.05  # khoảng cách nhỏ hơn giá trị này
+        "fingers": [1, 1, 0, 0, 1],
+        "conditions": [
+            {"type": "thumb_index_dist", "op": "<", "value": 0.05}
+        ]
+    },
+    {
+        "name": "Fist",
+        "fingers": [0, 0, 0, 0, 0],
+        "conditions": []
     }
 ]
 
-# Ký hiệu 2 tay
-two_hand_gestures = [
+# Quy tắc cho hai tay
+two_hand_rules = [
     {
-        "name": "Hai tay mở",
-        "pattern": [
-            [0, 1, 1, 1, 1],  # tay trái
-            [0, 1, 1, 1, 1]   # tay phải
-        ]
+        "name": "Double L",
+        "fingers": [[1, 1, 0, 0, 0], [1, 1, 0, 0, 0]],
+        "conditions": []
+    },
+    {
+        "name": "Two Hands Up",
+        "fingers": [[1, 1, 1, 1, 1], [1, 1, 1, 1, 1]],
+        "conditions": []
     }
 ]
