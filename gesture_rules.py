@@ -1,26 +1,28 @@
 # gesture_rules.py
-# Mảng quy tắc rút gọn: SINGLE_HAND_RULES và DOUBLE_HAND_RULES
-# Dễ mở rộng: mỗi rule là dict với key pattern(s) và label.
 
+# Quy tắc nhận diện 1 tay (tay phải)
 SINGLE_HAND_RULES = [
-    {"pattern": [0, 1, 1, 0, 0], "label": "V"},
-    {"pattern": [0, 1, 0, 0, 0], "label": "L"},
-    {"pattern": [0, 1, 1, 1, 0], "label": "W"},
-    {"pattern": [1, 1, 0, 0, 0], "label": "Y"},
-    {"pattern": [0, 1, 1, 1, 1], "label": "B"},
-    {"pattern": [0, 0, 0, 0, 0], "label": "Nắm tay"},
-    {"pattern": [1, 1, 1, 1, 1], "label": "Số 5"}
+    {"label": "B", "pattern": [0, 1, 1, 1, 1]},       # Ngón cái co, 4 ngón còn lại duỗi
+    {"label": "L", "pattern": [0, 1, 0, 0, 0]},       # Ngón trỏ duỗi
+    {"label": "V", "pattern": [0, 1, 1, 0, 0]},       # Trỏ + giữa duỗi
+    {"label": "Y", "pattern": [1, 1, 0, 0, 1]},       # Ngón cái + trỏ + út duỗi
+    {"label": "Nắm tay", "pattern": [0, 0, 0, 0, 0]}  # Tất cả co
 ]
 
+# Quy tắc nhận diện 2 tay (ít dùng hơn, không ưu tiên tìm kiếm)
 DOUBLE_HAND_RULES = [
     {
-        "left_pattern": [0, 1, 0, 0, 0],
-        "right_pattern": [0, 1, 0, 0, 0],
-        "label": "Bạn bè"
+        "label": "Song V",
+        "patterns": [
+            [0, 1, 1, 0, 0],  # Tay phải: V
+            [0, 1, 1, 0, 0]   # Tay trái: V
+        ]
     },
     {
-        "left_pattern": [0, 1, 1, 0, 0],
-        "right_pattern": [0, 1, 1, 0, 0],
-        "label": "Gia đình"
+        "label": "Song B",
+        "patterns": [
+            [0, 1, 1, 1, 1],  # Tay phải: B
+            [0, 1, 1, 1, 1]   # Tay trái: B
+        ]
     }
 ]
