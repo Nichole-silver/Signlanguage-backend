@@ -7,30 +7,26 @@ from process_image import detect_gesture
 
 app = Flask(__name__)
 
-
-CORS(app, resources={r"/*": {"origins": "*"}})  # Tạm cho phép tất cả
+# ✅ Bật CORS cho tất cả route & tất cả domain
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 @app.route('/')
 def home():
     return jsonify({"message": "Flask API đang chạy."})
 
-@app.route('/detect_image', methods=['POST'])
+@app.route('/detect_image', methods=['POST', 'OPTIONS'])
 def detect_image():
-    print("📥 Nhận yêu cầu /detect_image")  # Log khi nhận request
-    print("Headers:", dict(request.headers))  # In headers để debug
-    print("Content-Type:", request.content_type)
-
+    print("📥 Nhận yêu cầu /detect_image")
     image = None
-    ...
 
-    # Trường hợp 1: nhận ảnh dạng file
+    # Trường hợp 1: nhận ảnh dạng file (FormData)
     if 'image' in request.files:
         file = request.files['image']
         in_memory_file = file.read()
         npimg = np.frombuffer(in_memory_file, np.uint8)
         image = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
 
-    # Trường hợp 2: nhận ảnh dạng base64 (từ testapi-mode)
+    # Trường hợp 2: nhận ảnh dạng base64 (JSON)
     elif request.is_json:
         data = request.get_json()
         if 'image' in data:
