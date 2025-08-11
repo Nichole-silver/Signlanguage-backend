@@ -7,8 +7,8 @@ from process_image import detect_gesture
 
 app = Flask(__name__)
 
-# Bật CORS cho domain frontend của bạn
-CORS(app, origins=["https://translate-learn-asl-website.vercel.app"])
+
+CORS(app, resources={r"/*": {"origins": "*"}})  # Tạm cho phép tất cả
 
 @app.route('/')
 def home():
