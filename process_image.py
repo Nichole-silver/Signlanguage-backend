@@ -1,81 +1,89 @@
+# process_image.py
 import cv2
 import mediapipe as mp
 import numpy as np
-from gesture_rules import SINGLE_HAND_RULES, DOUBLE_HAND_RULES
+from gesture_rules import one_hand_rules, two_hand_rules
 
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 
-# --- Hàm đảo ngược bàn tay (vì camera trước lật hình) ---
-def mirror_finger_data(fingers):
-    return [fingers[0]] + fingers[1:][::-1]  # giữ nguyên ngón cái, đảo thứ tự 4 ngón còn lại
 
-# --- Hàm xác định trạng thái ngón ---
-def get_finger_states(hand_landmarks):
-    # Các mốc tay trong Mediapipe: https://google.github.io/mediapipe/solutions/hands
-    tips = [4, 8, 12, 16, 20]
-    pips = [3, 6, 10, 14, 18]
+def fingers_up(hand_landmarks):
+    """
+    Xác định trạng thái 5 ngón tay: 1 = duỗi, 0 = gập
+    Dành cho tay phải, ảnh đã được flip để không bị mirror
+    """
+    finger_states = []
+    tips_ids = [4, 8, 12, 16, 20]
+    pip_ids = [2, 6, 10, 14, 18]
 
-    fingers = []
-    # Ngón cái (so sánh x theo chiều ngang)
-    if hand_landmarks.landmark[tips[0]].x < hand_landmarks.landmark[pips[0]].x:
-        fingers.append(1)
+    # Ngón cái (xét trục X)
+    if hand_landmarks.landmark[tips_ids[0]].x > hand_landmarks.landmark[pip_ids[0]].x:
+        finger_states.append(1)
     else:
-        fingers.append(0)
+        finger_states.append(0)
 
-    # Các ngón còn lại (so sánh y theo chiều dọc)
-    for tip, pip in zip(tips[1:], pips[1:]):
+    # 4 ngón còn lại (xét trục Y)
+    for tip, pip in zip(tips_ids[1:], pip_ids[1:]):
         if hand_landmarks.landmark[tip].y < hand_landmarks.landmark[pip].y:
-            fingers.append(1)
+            finger_states.append(1)
         else:
-            fingers.append(0)
+            finger_states.append(0)
 
-    return fingers
+    return finger_states
 
-# --- Hàm so khớp với tolerance ---
-def match_pattern(detected, pattern, tolerance=0):
-    diff = sum(1 for d, p in zip(detected, pattern) if d != p)
-    return diff <= tolerance
 
-# --- Hàm nhận diện ---
 def detect_gesture(image):
+    """
+    Phân tích ảnh, trả về tên ký hiệu
+    """
+    # Flip ảnh để giống góc nhìn thực tế (người đối diện)
+    image = cv2.flip(image, 1)
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    with mp_hands.Hands(
-        static_image_mode=True,
-        max_num_hands=2,
-        min_detection_confidence=0.5
-    ) as hands:
+    with mp_hands.Hands(static_image_mode=True,
+                        max_num_hands=2,
+                        min_detection_confidence=0.5) as hands:
+
         results = hands.process(image_rgb)
 
         if not results.multi_hand_landmarks:
             return "Không nhận diện được tay"
 
-        hand_count = len(results.multi_hand_landmarks)
+        num_hands = len(results.multi_hand_landmarks)
 
-        if hand_count == 1:
-            # --- Xử lý tay phải (ảnh mirror) ---
-            fingers = get_finger_states(results.multi_hand_landmarks[0])
-            fingers = mirror_finger_data(fingers)
+        # ===== 1 tay =====
+        if num_hands == 1:
+            hand_landmarks = results.multi_hand_landmarks[0]
+            fingers = fingers_up(hand_landmarks)
 
-            # Ưu tiên nhận dạng exact match cho ký hiệu đặc trưng
-            for rule in SINGLE_HAND_RULES:
-                if rule.get("strict", False) and match_pattern(fingers, rule["pattern"], tolerance=0):
-                    return rule["label"]
+            # Dò nhanh trong rule 1 tay
+            for rule in one_hand_rules:
+                if fingers == rule["pattern"]:
+                    # Kiểm tra điều kiện phụ nếu có
+                    if "thumb_index_dist_max" in rule:
+                        thumb_tip = hand_landmarks.landmark[4]
+                        index_tip = hand_landmarks.landmark[8]
+                        dist = np.sqrt((thumb_tip.x - index_tip.x) ** 2 +
+                                       (thumb_tip.y - index_tip.y) ** 2)
+                        if dist > rule["thumb_index_dist_max"]:
+                            continue
+                    return rule["name"]
 
-            # Sau đó mới dùng tolerance cho ký hiệu dễ lệch
-            for rule in SINGLE_HAND_RULES:
-                if match_pattern(fingers, rule["pattern"], tolerance=1):
-                    return rule["label"]
+            return "Không rõ"
 
-        elif hand_count == 2:
-            # Xử lý hai tay
-            fingers_list = []
-            for hl in results.multi_hand_landmarks:
-                fingers_list.append(mirror_finger_data(get_finger_states(hl)))
+        # ===== 2 tay =====
+        elif num_hands == 2:
+            hands_fingers = []
+            for hand_landmarks in results.multi_hand_landmarks:
+                hands_fingers.append(fingers_up(hand_landmarks))
 
-            for rule in DOUBLE_HAND_RULES:
-                if all(match_pattern(f, p, tolerance=1) for f, p in zip(fingers_list, rule["patterns"])):
-                    return rule["label"]
+            left_fingers, right_fingers = hands_fingers
+
+            for rule in two_hand_rules:
+                if left_fingers == rule["pattern_left"] and right_fingers == rule["pattern_right"]:
+                    return rule["name"]
+
+            return "Không rõ"
 
         return "Không rõ"
