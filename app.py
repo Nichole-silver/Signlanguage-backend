@@ -1,10 +1,14 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import cv2
 import numpy as np
 import base64
 from process_image import detect_gesture
 
 app = Flask(__name__)
+
+# Bật CORS cho domain frontend của bạn
+CORS(app, origins=["https://translate-learn-asl-website.vercel.app"])
 
 @app.route('/')
 def home():
@@ -48,5 +52,3 @@ def detect_image():
 if __name__ == '__main__':
     print("API đang chạy tại http://0.0.0.0:5000")
     app.run(host="0.0.0.0", port=5000, debug=True)
-
-
