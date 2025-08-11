@@ -2,87 +2,89 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-from gesture_rules import one_hand_rules, two_hand_rules
+from gesture_rules import one_hand_gestures, special_one_hand_gestures, two_hand_gestures
 
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 
-
 def fingers_up(hand_landmarks):
     """
-    Xác định trạng thái 5 ngón tay: 1 = duỗi, 0 = gập
-    Dành cho tay phải, ảnh đã được flip để không bị mirror
+    Xác định trạng thái các ngón: 1 = duỗi, 0 = gập
+    Ảnh đã được flip để khớp với góc nhìn thực tế
     """
-    finger_states = []
     tips_ids = [4, 8, 12, 16, 20]
-    pip_ids = [2, 6, 10, 14, 18]
+    fingers = []
 
-    # Ngón cái (xét trục X)
-    if hand_landmarks.landmark[tips_ids[0]].x > hand_landmarks.landmark[pip_ids[0]].x:
-        finger_states.append(1)
+    # Ngón cái
+    if hand_landmarks.landmark[tips_ids[0]].x < hand_landmarks.landmark[tips_ids[0] - 1].x:
+        fingers.append(1)
     else:
-        finger_states.append(0)
+        fingers.append(0)
 
-    # 4 ngón còn lại (xét trục Y)
-    for tip, pip in zip(tips_ids[1:], pip_ids[1:]):
-        if hand_landmarks.landmark[tip].y < hand_landmarks.landmark[pip].y:
-            finger_states.append(1)
+    # 4 ngón còn lại
+    for id in range(1, 5):
+        if hand_landmarks.landmark[tips_ids[id]].y < hand_landmarks.landmark[tips_ids[id] - 2].y:
+            fingers.append(1)
         else:
-            finger_states.append(0)
+            fingers.append(0)
 
-    return finger_states
+    return fingers
 
+def calculate_thumb_index_distance(hand_landmarks):
+    """Tính khoảng cách giữa ngón cái và ngón trỏ"""
+    thumb_tip = np.array([hand_landmarks.landmark[4].x, hand_landmarks.landmark[4].y])
+    index_tip = np.array([hand_landmarks.landmark[8].x, hand_landmarks.landmark[8].y])
+    return np.linalg.norm(thumb_tip - index_tip)
 
 def detect_gesture(image):
     """
-    Phân tích ảnh, trả về tên ký hiệu
+    Nhận diện ký hiệu tay từ ảnh
     """
-    # Flip ảnh để giống góc nhìn thực tế (người đối diện)
-    image = cv2.flip(image, 1)
-    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image = cv2.flip(image, 1)  # lật ảnh để giống thực tế
+    img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    with mp_hands.Hands(static_image_mode=True,
-                        max_num_hands=2,
-                        min_detection_confidence=0.5) as hands:
+    with mp_hands.Hands(
+        static_image_mode=True,
+        max_num_hands=2,
+        min_detection_confidence=0.7
+    ) as hands:
 
-        results = hands.process(image_rgb)
+        results = hands.process(img_rgb)
 
         if not results.multi_hand_landmarks:
             return "Không nhận diện được tay"
 
         num_hands = len(results.multi_hand_landmarks)
 
-        # ===== 1 tay =====
         if num_hands == 1:
+            # ---- XỬ LÝ 1 TAY ----
             hand_landmarks = results.multi_hand_landmarks[0]
             fingers = fingers_up(hand_landmarks)
 
-            # Dò nhanh trong rule 1 tay
-            for rule in one_hand_rules:
-                if fingers == rule["pattern"]:
-                    # Kiểm tra điều kiện phụ nếu có
-                    if "thumb_index_dist_max" in rule:
-                        thumb_tip = hand_landmarks.landmark[4]
-                        index_tip = hand_landmarks.landmark[8]
-                        dist = np.sqrt((thumb_tip.x - index_tip.x) ** 2 +
-                                       (thumb_tip.y - index_tip.y) ** 2)
-                        if dist > rule["thumb_index_dist_max"]:
-                            continue
-                    return rule["name"]
+            # 1. Kiểm tra special gestures
+            for gesture in special_one_hand_gestures:
+                if fingers == gesture["pattern"]:
+                    dist = calculate_thumb_index_distance(hand_landmarks)
+                    if dist < gesture["thumb_index_dist"]:
+                        return gesture["name"]
+
+            # 2. Kiểm tra gesture thường
+            for gesture in one_hand_gestures:
+                if fingers == gesture["pattern"]:
+                    return gesture["name"]
 
             return "Không rõ"
 
-        # ===== 2 tay =====
         elif num_hands == 2:
+            # ---- XỬ LÝ 2 TAY ----
             hands_fingers = []
             for hand_landmarks in results.multi_hand_landmarks:
                 hands_fingers.append(fingers_up(hand_landmarks))
 
-            left_fingers, right_fingers = hands_fingers
-
-            for rule in two_hand_rules:
-                if left_fingers == rule["pattern_left"] and right_fingers == rule["pattern_right"]:
-                    return rule["name"]
+            # Duyệt các pattern 2 tay
+            for gesture in two_hand_gestures:
+                if hands_fingers == gesture["pattern"]:
+                    return gesture["name"]
 
             return "Không rõ"
 
