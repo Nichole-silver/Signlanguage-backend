@@ -16,7 +16,12 @@ def home():
 
 @app.route('/detect_image', methods=['POST'])
 def detect_image():
+    print("📥 Nhận yêu cầu /detect_image")  # Log khi nhận request
+    print("Headers:", dict(request.headers))  # In headers để debug
+    print("Content-Type:", request.content_type)
+
     image = None
+    ...
 
     # Trường hợp 1: nhận ảnh dạng file
     if 'image' in request.files:
