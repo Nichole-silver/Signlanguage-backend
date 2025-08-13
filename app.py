@@ -3,7 +3,7 @@ from flask_cors import CORS
 import cv2
 import numpy as np
 import base64
-from process_image import detect_gesture
+from process_image1 import detect_gesture
 
 app = Flask(__name__)
 
