@@ -1,0 +1,20 @@
+# Core web framework
+Flask==3.0.3
+Flask-Cors==4.0.0
+
+# Database (MongoDB)
+pymongo==4.8.0
+dnspython==2.6.1
+
+# Image processing (nếu bạn có xử lý ảnh / load ảnh)
+Pillow==10.4.0
+
+# Utility & environment
+python-dotenv==1.0.1
+requests==2.32.3
+
+# Optional (nếu bạn có dùng các model hoặc ML)
+
+# Development tools
+gunicorn==23.0.0
+
