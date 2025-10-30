@@ -4,10 +4,9 @@ import cv2
 import mediapipe as mp
 import numpy as np
 from services.translate_api.gesture_rules import (
-    one_hand_gestures,
-    special_one_hand_gestures,
-    two_hand_gestures
+    one_hand_gestures, special_one_hand_gestures, two_hand_gestures
 )
+
 
 mp_hands = mp.solutions.hands
 
