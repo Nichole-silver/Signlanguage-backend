@@ -1,6 +1,7 @@
 # main.py
 from flask import Flask, jsonify
 from flask_cors import CORS
+import os
 
 # Import các blueprint từ API con
 from services.image_api.app import image_bp
@@ -27,5 +28,6 @@ def home():
     })
 
 if __name__ == "__main__":
-    print("🚀 Server đang chạy tại http://0.0.0.0:5000")
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    print(f"🚀 Server đang chạy tại http://0.0.0.0:{port}")
+    app.run(host="0.0.0.0", port=port, debug=True)
