@@ -6,7 +6,7 @@ from pymongo import MongoClient
 image_bp = Blueprint("image", __name__)
 CORS(image_bp)
 
-MONGO_URI = "mongodb+srv://mandebrian03_db_user:UsG6y53Jf5rxzHDP@cluster0.4brwruq.mongodb.net/?retryWrites=true&w=majority"
+MONGO_URI = "mongodb://localhost:27017/"
 DB_NAME = "SignLanguageDB"
 COLLECTION_NAME = "lessons_full"
 
