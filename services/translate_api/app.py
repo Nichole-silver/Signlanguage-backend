@@ -1,3 +1,18 @@
+# services/translate_api/app.py
+from flask import Blueprint, request, jsonify
+from flask_cors import CORS
+import cv2
+import numpy as np
+import base64
+from .process_image1 import detect_gesture
+
+translate_bp = Blueprint("translate", __name__)
+CORS(translate_bp)
+
+@translate_bp.route("/")
+def home():
+    return jsonify({"message": "Translate API đang chạy."})
+
 @translate_bp.route("/detect_image", methods=["POST", "OPTIONS"])
 def detect_image():
     print("📥 Nhận yêu cầu /detect_image")
@@ -19,7 +34,7 @@ def detect_image():
                 npimg = np.frombuffer(image_bytes, np.uint8)
                 image = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
             except:
-                return jsonify({'error': 'Lỗi decode base64'}), 400
+                return jsonify({'error': 'Lỗi khi decode base64'}), 400
         else:
             return jsonify({'error': 'Không có ảnh trong JSON'}), 400
 
